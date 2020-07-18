@@ -55,6 +55,7 @@ GuiController::GuiController(const TGWindow *p, int w, int h, const char* fn, do
         vw->can->cd(i+1);
         data->wfs.at(i)->Draw2D();
     }
+
     for (int i=0; i<3; i++) {
         vw->can->cd(i+7);
         int chanNo = data->wfs.at(i)->firstChannel;
@@ -64,6 +65,7 @@ GuiController::GuiController(const TGWindow *p, int w, int h, const char* fn, do
         h->SetLineColor(kRed);
         hCurrent[i] = h;
     }
+
 
     InitConnections();
 }
@@ -273,7 +275,7 @@ void GuiController::ChannelChanged()
             it = std::upper_bound(bad_id.begin(), bad_id.end(), curr); // find first element greater
             if(it!=bad_id.end()){
                 next = *it;
-            }            
+            }
         }
         cw->channelEntry->SetNumber(next);
     }

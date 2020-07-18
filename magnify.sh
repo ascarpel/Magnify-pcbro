@@ -13,7 +13,7 @@ frame="${2:-decon}"
 startdir=$(pwd)
 rebin="${3:-1}"
 
-#echo "Loading frame \"$frame\" rebin \"$rebin\""
+echo "Loading frame \"$frame\" rebin \"$rebin\""
 
 cd $magnify_source/scripts
 
@@ -21,4 +21,4 @@ cd $magnify_source/scripts
 #echo $frame
 #echo $rebin
 
-root -l loadClasses.C Magnify.C'("'"$rootfile"'", '$threshold', "'"$frame"'", '$rebin')'
+root -l -n loadClasses.C Magnify.C'("'"$rootfile"'", '$threshold', "'"$frame"'", '$rebin')'

@@ -32,27 +32,34 @@ Data::Data(const char* filename, double threshold, const char* frame, int rebin)
     	msg += filename;
     	throw runtime_error(msg.c_str());
     }
+
     bad_channels = new BadChannels( (TTree*)rootFile->Get("T_bad") );
-    load_runinfo();
 
-    load_channelstatus();
+    //load_runinfo();
+    //load_channelstatus();
 
+    load_waveform("hw_raw", "W Plane (Denoised)", 1., threshold);
     load_waveform("hu_raw", "U Plane (Denoised)", 1., threshold);
     load_waveform("hv_raw", "V Plane (Denoised)", 1., threshold);
-    load_waveform("hw_raw", "W Plane (Denoised)", 1., threshold);
 
-    for (int iplane=0; iplane<3; ++iplane) {
-        load_waveform(Form("h%c_%s", 'u'+iplane, frame),
-                      Form("%c Plane (Deconvoluted)", 'U'+iplane), 1./(500.*rebin/4.0), threshold);
-    }
+    load_waveform(Form("hw_%s", frame), "W Plane (Deconvoluted)", 1./rebin, threshold);
+    load_waveform(Form("hu_%s", frame), "U Plane (Deconvoluted)", 1./rebin, threshold);
+    load_waveform(Form("hv_%s", frame), "V Plane (Deconvoluted)", 1./rebin, threshold);
 
+    //for (int iplane=0; iplane<3; ++iplane) {
+    //    load_waveform(Form("h%c_%s", 'u'+iplane, frame),
+    //              Form("%c Plane (Deconvoluted)", 'U'+iplane), 100., threshold);
+    //}
+
+    load_rawwaveform("hw_orig", "hw_baseline");
     load_rawwaveform("hu_orig", "hu_baseline");
     load_rawwaveform("hv_orig", "hv_baseline");
-    load_rawwaveform("hw_orig", "hw_baseline");
 
+
+    load_threshold("hw_threshold");
     load_threshold("hu_threshold");
     load_threshold("hv_threshold");
-    load_threshold("hw_threshold");
+
 }
 
 void Data::load_runinfo()
@@ -100,20 +107,9 @@ void Data::load_channelstatus(){
     in.close();
 }
 
-int Data::GetPlaneNo(int chanNo)
-{
-    // 800 u + 800 v + 960 w = 2560
-    int apaNo = chanNo / 2560;
-    int offset = chanNo - apaNo*2560;
-    if (offset < 800) {
-        return 0;
-    }
-    else if (offset < 1600) {
-        return 1;
-    }
-    else {
-        return 2;
-    }
+int Data::GetPlaneNo(int chanNo){
+
+    return chanNo / 64;
 }
 
 // Wrap up some ROOT pointer dancing.
@@ -156,21 +152,26 @@ void Data::load_waveform(const char* name, const char* title, double scale, doub
         msg += ", create dummy ...";
         cout << msg << endl;
     	// throw runtime_error(msg.c_str());
-        int nChannels = 2400;
-        int nTDCs = 6000;
-        int firstChannel = 0;
-        if (msg.Contains("hv")) {
-            firstChannel = 2400;
-        }
-        else if (msg.Contains("hw")) {
-            firstChannel = 4800;
-            nChannels = 3456;
-        }
-        obj = new TH2F(name, title, nChannels,firstChannel-0.5,firstChannel+nChannels-0.5,nTDCs,0,nTDCs);
+      int nChannels = 64;
+      int nTDCs = 648;
+      int firstChannel = 65;
+
+      if (msg.Contains("hv")) {
+          firstChannel = 129;
+      }
+      else if (msg.Contains("hw")) {
+          firstChannel = 0;
+          //nChannels = 64;
+      }
+
+      obj = new TH2F(name, title, nChannels,firstChannel-0.5,firstChannel+nChannels-0.5,nTDCs,0,nTDCs);
     }
     auto hist = maybe_cast<TH2, TH2F>(obj, {"TH2F", "TH2I"}, true);
     hist->SetXTitle("channel");
     hist->SetYTitle("ticks");
+
+    cout << hist->GetName() << " " << hist->GetBinContent(100) << endl;
+
     wfs.push_back( new Waveforms(hist, bad_channels, name, title, scale, threshold) );
 }
 
@@ -183,16 +184,18 @@ void Data::load_rawwaveform(const char* name, const char* baseline_name)
         msg += ", create dummy ...";
         cout << msg << endl;
         // throw runtime_error(msg.c_str());
-        int nChannels = 2400;
-        int nTDCs = 6000;
-        int firstChannel = 0;
+        int nChannels = 64;
+        int nTDCs = 648;
+        int firstChannel = 65;
+
         if (msg.Contains("hv")) {
-            firstChannel = 2400;
+            firstChannel = 129;
         }
         else if (msg.Contains("hw")) {
-            firstChannel = 4800;
-            nChannels = 3456;
+            firstChannel = 0;
+            //nChannels = 64;
         }
+
         obj = new TH2I(name, "", nChannels,firstChannel-0.5,firstChannel+nChannels-0.5,nTDCs,0,nTDCs);
     }
 

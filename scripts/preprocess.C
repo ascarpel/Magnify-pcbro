@@ -1,6 +1,6 @@
 /*
 Script to merge histograms from six APAs
-Wenqiang Gu (wgu@bnl.gov)
+Wenqiang||||||||||||||||G|u (wgu@bnl.gov)
 */
 
 #include <iostream>
@@ -29,87 +29,121 @@ std::string getFileName(const std::string& fullPath, const std::string extension
   return fullPath.substr(lastSlashIndex + 1, fullPath.size() - lastSlashIndex - extension.size() - 1);
 }
 
+
+double getMedian( std::vector<double> a ) {
+
+  double median =0.0;
+
+  //not the quickest, but the simplest
+  std::sort( a.begin(), a.end() );
+  size_t n = a.size();
+
+  //even case is simple
+  if( n % 2 !=0 ) {
+    median =  a[n/2];
+  }
+
+  //odd is the mean between the two central values
+  median = (a[ (n-1) / 2 ] + a[n/2]) / 2.0;
+
+  return  median;
+}
+
+
 void MergeByTag(TFile* f1, TH2* hall, const char* tag="hu_orig", bool set_baseline=false, double scale=1){
-     TIter keyList(f1->GetListOfKeys());
-     TKey *key;
-     TH1I* hbase = new TH1I("baseline","baseline", 4096, 0, 4096);
-     while ((key = (TKey*)keyList())) {
-        TClass *cl = gROOT->GetClass(key->GetClassName());
-        if (!cl->InheritsFrom("TH1")) continue;
-        TH2 *h = (TH2*)key->ReadObj();
-        TString hname(h->GetName());
-        if(hname.Contains(tag)){
-          int nX = h->GetNbinsX();
-          int nY = h->GetNbinsY();
-          for(int i=1; i<=nX; i++){
-            // cout << "channel " << i-1 << endl;
-            if(set_baseline) hbase->Reset();
-            double X = h->GetXaxis()->GetBinCenter(i);
-            for(int j=1; j<=nY; j++){
-              double Y = h->GetYaxis()->GetBinCenter(j);
-              double content = h->GetBinContent(i,j);
-              if(set_baseline) hbase->Fill(content);
-              else{
-                int bin1 = hall->FindBin(X,Y);
-                hall->SetBinContent(bin1, content);
-              }
-            }
-            if(set_baseline){
-              float baseline = hbase->GetBinCenter(hbase->GetMaximumBin());
-              // cout << "channel " << i-1 << " baseline= " << baseline << endl;
-              for(int j=1; j<=nY; j++){
-                // cout << "tick= " << j << endl;
-                double Y = h->GetYaxis()->GetBinCenter(j);
-                double content = h->GetBinContent(i,j);
-                int bin1 = hall->FindBin(X,Y);
-                hall->SetBinContent(bin1, content - baseline);             
-              }
 
-            }
-          }
-          std::cout << "Merging " << h->GetName() << " to " << hall->GetName() << std::endl;
+     //TH1I* hbase = new TH1I("baseline","baseline", 4096, 0, 4096);
+     std::vector<double> waveform;
 
+     // Get the histogram by key ( there should be only one )
+     TH2* h = (TH2*)f1->Get( tag );
+
+    int nX = h->GetNbinsX();
+    int nY = h->GetNbinsY();
+
+    for(int i=1; i<=nX; i++) {
+
+      double X = h->GetXaxis()->GetBinCenter(i);
+
+      if(set_baseline) waveform.clear();
+
+      for(int j=1; j<=nY; j++){
+        double Y = h->GetYaxis()->GetBinCenter(j);
+        double content = h->GetBinContent(i,j);
+        if(set_baseline) { waveform.push_back( content ); }
+        else{
+          int bin1 = hall->FindBin(X,Y);
+          hall->SetBinContent(bin1, content);
         }
-     }
-     hbase->Delete();
+      }
+
+      if(set_baseline){
+        float baseline = getMedian( waveform );
+        for(int j=1; j<=nY; j++) {
+          double Y = h->GetYaxis()->GetBinCenter(j);
+          double content = h->GetBinContent(i,j);
+          int bin1 = hall->FindBin(X,Y);
+          hall->SetBinContent(bin1, content - baseline);
+        }
+
+      }
+    }
+
+    std::cout << "Merging " << h->GetName() << " to " << hall->GetName() << std::endl;
+
+    //hbase->Delete();
 }
 
 void Merge1DByTag(TFile* f1, TH1* hall, const char* tag="hu_threshold"){
-     TIter keyList(f1->GetListOfKeys());
-     TKey *key;
-     while ((key = (TKey*)keyList())) {
-        TClass *cl = gROOT->GetClass(key->GetClassName());
-        if (!cl->InheritsFrom("TH1")) continue;
-        TH1 *h = (TH1*)key->ReadObj();
-        TString hname(h->GetName());
-        if(hname.Contains(tag)){
-          int nX = h->GetNbinsX();
-          for(int i=1; i<=nX; i++){
-              double X = h->GetXaxis()->GetBinCenter(i);
-              double content = h->GetBinContent(i);
-              int bin1 = hall->FindBin(X);
-              hall->SetBinContent(bin1, h->GetBinContent(i));
-          }
-          std::cout << "Merging " << h->GetName() << " to " << hall->GetName() << std::endl;
-        }
-     }
+
+  TH1 *h = (TH1*)f1->Get(tag);
+
+  int nX = h->GetNbinsX();
+
+  for(int i=1; i<=nX; i++) {
+    double X = h->GetXaxis()->GetBinCenter(i);
+    double content = h->GetBinContent(i);
+    int bin1 = hall->FindBin(X);
+    hall->SetBinContent(bin1, h->GetBinContent(i));
+  }
+
+  std::cout << "Merging " << h->GetName() << " to " << hall->GetName() << std::endl;
+
 }
 
+
+void getChannelsByTag( TString tag, double &xmin, double &xmax, int &nbinsx ) {
+
+
+  int nChannels = 64;
+  int firstChannel = 64;
+
+  if (tag.Contains("hv")) {
+      firstChannel = 128;
+  }
+  else if (tag.Contains("hw")) {
+      firstChannel = 0;
+  }
+
+  xmin = firstChannel-0.5;
+  xmax = (firstChannel+nChannels)-0.5;
+  nbinsx = xmax-xmin;
+
+}
 
 // merge histograms given in- and out-tags
 void preprocess(
       std::string inPath = "data/magnify_5141_23468.root",
-      std::string outDir = "data/", 
+      std::string outDir = "data/",
       const char* intag= "orig",
       const char* outtag = "orig",
       std::string suffix="v2",
       bool set_baseline=false,
-      const char* file_open_mode = "update",
-      float xmin=-0.5,
-      float xmax=15359.5,
-      float ymin=0,
-      float ymax=6000
+      const char* file_open_mode = "update"
 ) {
+
+  double xmin=0, xmax=0, ymin=0, ymax=648;
+  int nbinsx=0;  int nbinsy = ymax-ymin;
 
   std::string fileName = getFileName(inPath);
   std::string outPath = outDir + "/" + fileName + "-" + suffix + ".root";
@@ -117,8 +151,7 @@ void preprocess(
   std::cout << "output file: " << outPath << std::endl;
   std::cout << "in tag: " << intag << std::endl;
   std::cout << "out tag: " << outtag << std::endl;
-  int nbinsx = xmax-xmin;
-  int nbinsy = ymax-ymin;
+
 
   TFile *f1 = TFile::Open(inPath.c_str());
   // Merge trees
@@ -145,7 +178,7 @@ void preprocess(
       if(std::string(outtag)=="") outtag = tree_name.c_str();
       newtree->SetName(outtag);
       newtree->SetTitle(outtag);
-      newtree->Write();   
+      newtree->Write();
     }
     else {
       std::cout << "\n No. of bad channels: 0 \n";
@@ -158,10 +191,20 @@ void preprocess(
 
   // Merge histograms
   auto h = f1->Get(Form("hu_%s", intag));
-  if(h) return;
+  //if(h){
+  //  std::cout << "No histogram with tag: " << Form("hu_%s", intag) << " found" << std::endl;
+  //  return;
+  //}
+
   if(std::string(outtag)=="threshold"){
+
+    getChannelsByTag( Form("hu_%s", outtag), xmin, xmax, nbinsx );
     TH1I* hu = new TH1I(Form("hu_%s", outtag),Form("hu_%s", outtag), nbinsx, xmin, xmax);
+
+    getChannelsByTag( Form("hv_%s", outtag), xmin, xmax, nbinsx );
     TH1I* hv = new TH1I(Form("hv_%s", outtag),Form("hv_%s", outtag), nbinsx, xmin, xmax);
+
+    getChannelsByTag( Form("hw_%s", outtag), xmin, xmax, nbinsx );
     TH1I* hw = new TH1I(Form("hw_%s", outtag),Form("hw_%s", outtag), nbinsx, xmin, xmax);
 
     TFile* fout = new TFile(outPath.c_str(), file_open_mode);
@@ -175,8 +218,14 @@ void preprocess(
     fout->Close();
   }
   else if (std::string(outtag)=="orig"){
+
+    getChannelsByTag( Form("hu_%s", outtag), xmin, xmax, nbinsx );
     TH2I* hu = new TH2I(Form("hu_%s", outtag),Form("hu_%s", outtag), nbinsx, xmin, xmax, nbinsy, ymin,ymax);
+
+    getChannelsByTag( Form("hv_%s", outtag), xmin, xmax, nbinsx );
     TH2I* hv = new TH2I(Form("hv_%s", outtag),Form("hv_%s", outtag), nbinsx, xmin, xmax, nbinsy, ymin,ymax);
+
+    getChannelsByTag( Form("hw_%s", outtag), xmin, xmax, nbinsx );
     TH2I* hw = new TH2I(Form("hw_%s", outtag),Form("hw_%s", outtag), nbinsx, xmin, xmax, nbinsy, ymin,ymax);
 
     TFile* fout = new TFile(outPath.c_str(), file_open_mode);
@@ -190,8 +239,14 @@ void preprocess(
     fout->Close();
   }
   else{
+
+    getChannelsByTag( Form("hu_%s", outtag), xmin, xmax, nbinsx );
     TH2F* hu = new TH2F(Form("hu_%s", outtag),Form("hu_%s", outtag), nbinsx, xmin, xmax, nbinsy, ymin,ymax);
+
+    getChannelsByTag( Form("hv_%s", outtag), xmin, xmax, nbinsx );
     TH2F* hv = new TH2F(Form("hv_%s", outtag),Form("hv_%s", outtag), nbinsx, xmin, xmax, nbinsy, ymin,ymax);
+
+    getChannelsByTag( Form("hw_%s", outtag), xmin, xmax, nbinsx );
     TH2F* hw = new TH2F(Form("hw_%s", outtag),Form("hw_%s", outtag), nbinsx, xmin, xmax, nbinsy, ymin,ymax);
 
     TFile* fout = new TFile(outPath.c_str(), file_open_mode);
@@ -203,9 +258,9 @@ void preprocess(
     hv->Write();
     hw->Write();
     fout->Close();
-
    }
+
    f1->Close();
 
-   std::cout << "\n Now try: ./magnify.sh " + outPath + "\n"; 
+   std::cout << "\n Now try: ./magnify.sh " + outPath + "\n";
 }

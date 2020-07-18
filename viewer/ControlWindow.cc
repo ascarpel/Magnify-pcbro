@@ -22,7 +22,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
         TGNumberFormat::kNESInteger,
         TGNumberFormat::kNEANonNegative,
         TGNumberFormat::kNELLimitMinMax,
-        0, 15359);
+        0, 200);
     group_general->AddFrame(channelEntry, new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
 
     rawWfButton = new TGCheckButton(group_general, "raw waveform ");
@@ -35,7 +35,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
 
     badOnlyButton = new TGCheckButton(group_general, "evil mode");
     badOnlyButton->SetState(kButtonUp);
-    group_general->AddFrame(badOnlyButton, new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));    
+    group_general->AddFrame(badOnlyButton, new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
 
     setThreshButton = new TGTextButton(group_general, "ch. thresh. x");
     group_general->AddFrame(setThreshButton, new TGLayoutHints(kLHintsTop | kLHintsLeft, 3, 2, 2, 2));
@@ -43,7 +43,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
         TGNumberFormat::kNESReal,
         TGNumberFormat::kNEANonNegative,
         TGNumberFormat::kNELLimitMinMax,
-        0, 10);
+        0, 4000);
     threshScaleEntry->SetNumber(1);
     group_general->AddFrame(threshScaleEntry, new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
 
@@ -52,7 +52,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
         TGNumberFormat::kNESInteger,
         TGNumberFormat::kNEANonNegative,
         TGNumberFormat::kNELLimitMinMax,
-        0, 6000);
+        0, 700);
     group_general->AddFrame(timeEntry, new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
 
     timeModeButton = new TGCheckButton(group_general, "time mode  ");
@@ -70,7 +70,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
             TGNumberFormat::kNESInteger,
             TGNumberFormat::kNEANonNegative,
             TGNumberFormat::kNELLimitMinMax,
-            3, 30);
+            3, 3000);
         group[i]->AddFrame(threshEntry[i], new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
     }
     group[0]->SetTitle("U Plane");
@@ -87,7 +87,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
             TGNumberFormat::kNESInteger,
             TGNumberFormat::kNEAAnyNumber,
             TGNumberFormat::kNELLimitMinMax,
-            0, 10000);
+            0, 200);
         group_misc->AddFrame(timeRangeEntry[i], new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
     }
 
@@ -97,7 +97,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
             TGNumberFormat::kNESInteger,
             TGNumberFormat::kNEAAnyNumber,
             TGNumberFormat::kNELLimitMinMax,
-            -1000, 1000);
+            0, 700);
         group_misc->AddFrame(adcRangeEntry[i], new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
     }
 
@@ -110,7 +110,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
             TGNumberFormat::kNESInteger,
             TGNumberFormat::kNEAAnyNumber,
             TGNumberFormat::kNELLimitMinMax,
-            -100, 100);
+            -5000, 5000);
         group_misc->AddFrame(zAxisRangeEntry[i], new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
     }
 

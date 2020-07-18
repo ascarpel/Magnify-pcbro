@@ -33,17 +33,17 @@ elif [ "$#" -eq 3 ]; then
 	ext="$3"
 fi
 
-# echo $rootfile
-# echo $outPath
-# echo $ext
+echo $rootfile
+echo $outPath
+echo $ext
 
 cd $magnify_source/scripts
 
-root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "orig", "orig", "'"$ext"'", false, "recreate")'
-root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "raw", "raw", "'"$ext"'", true)'
-root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "gauss", "decon", "'"$ext"'")'
-root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "threshold", "threshold", "'"$ext"'")'
-# root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "tree:T_hm", "T_bad", "'"$ext"'")'
+root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "orig0", "orig", "'"$ext"'", false, "recreate")'
+root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "orig0", "raw", "'"$ext"'", true)'
+root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "gauss0", "decon", "'"$ext"'")'
+root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "threshold0", "threshold", "'"$ext"'")'
+#root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "tree:T_hm", "T_bad", "'"$ext"'")'
 
 # root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "wiener", "wiener", "'"$ext"'")'
 # root -l -b -q preprocess.C+'("'"$rootfile"'", "'"$outPath"'", "gauss", "gauss", "'"$ext"'")'

@@ -36,6 +36,7 @@ Waveforms::Waveforms(TH2F *h, BadChannels* v, TString name, TString title, doubl
     else if (name.Contains("hv")) planeNo = 1;
     else planeNo = 2;
     cout << name <<  ": nChannels: " << nChannels << " | nTDCs: " << nTDCs << endl;
+    cout << hOrig->GetBinContent(100) << endl;;
 
     // cout << "isDecon: " << isDecon << endl;
     useChannelThreshold = false;
@@ -50,30 +51,8 @@ Waveforms::Waveforms(TH2F *h, BadChannels* v, TString name, TString title, doubl
     hDummy->SetXTitle("channel");
     hDummy->SetYTitle("ticks");
 
-    int size = bad_channels->bad_id.size();
-    TLine *line = 0;
-    for (int i=0; i<size; i++) {
-        int channel = bad_channels->bad_id.at(i);
-        if (channel>=firstChannel && channel<firstChannel+nChannels) {
-            line = new TLine(
-                channel,
-                // hOrig->GetYaxis()->GetBinLowEdge(0),
-                bad_channels->bad_start.at(i),
-                channel,
-                // hOrig->GetYaxis()->GetBinUpEdge(nTDCs)
-                bad_channels->bad_end.at(i)
-            );
-            line->SetLineColorAlpha(kGray, 0.5);
-            lines.push_back(line);
-        }
-    }
-    for (int i=0; i!=5; i++) {
-        line = new TLine(2560*(i+1), 0, 2560*(i+1), 6000);
-        line->SetLineColorAlpha(kBlack, 0.2);
-        apa_lines.push_back(line);
-    }
 
-    SetZRange(10, 20);
+    SetZRange(-500, 500);
     SetThreshold(threshold);
 }
 
@@ -106,17 +85,20 @@ void Waveforms::SetZRange(int min, int max)
 
 void Waveforms::SetThreshold(double x)
 {
+
+    cout << "This" << endl;
     Clear();
     useChannelThreshold = false;
     threshold = x;
     TBox *box = 0;
+
     cout << fName << ": creating boxes ... " << flush;
     for (int i=1; i<=nChannels; i++) {
-        if (GetPlaneNo(i) != planeNo) continue;
+        //if (GetPlaneNo(i) != planeNo) continue;
         for (int j=1; j<=nTDCs; j++) {
             double content = hOrig->GetBinContent(i, j) * fScale;
+            //cout << content << endl;
             if (TMath::Abs(content)>threshold) {
-                // cout << content << ", " << threshold << endl;
                 box = new TBox(
                     hOrig->GetXaxis()->GetBinLowEdge(i),
                     hOrig->GetYaxis()->GetBinLowEdge(j),
@@ -137,7 +119,9 @@ void Waveforms::SetThreshold(TH1I *h, double scaling)
     Clear();
     useChannelThreshold = true;
     TBox *box = 0;
+
     cout << fName << ": creating boxes ... " << flush;
+
     for (int i=1; i<=nChannels; i++) {
         double channelThreshold = h->GetBinContent(i) * fScale * scaling;
         for (int j=1; j<=nTDCs; j++) {
@@ -179,6 +163,8 @@ void Waveforms::HideLines()
 
 void Waveforms::Draw2D()
 {
+    cout << "****> " <<hOrig->GetName() << " " << hOrig->GetBinContent(20, 105) << endl;
+    cout << "====> " <<hDummy->GetName() << " " << hDummy->GetBinContent(20, 105) << endl;
     hDummy->SetBinContent(1, 1);
     hDummy->Draw("colz");
     // hDummy->GetZaxis()->SetRangeUser(-1, 30);
@@ -191,9 +177,7 @@ void Waveforms::Draw2D()
         boxes[i]->SetFillColor(palette->GetValueColor(box_values[i]));
         boxes[i]->Draw();
     }
-    for (int i=0; i!=5; i++) {
-        apa_lines[i]->Draw();
-    }
+
 }
 
 TH1F* Waveforms::Draw1D(int chanNo, const char* options, const char* comment)
@@ -202,8 +186,13 @@ TH1F* Waveforms::Draw1D(int chanNo, const char* options, const char* comment)
     // TString title = TString::Format("Channel %i", chanNo);
     TString title = TString::Format("Channel %i          %s", chanNo, comment);
 
+    cout << "HERE 1" << endl;
+
     TH1F *hWire = (TH1F*)gDirectory->FindObject(name);
     if (hWire) delete hWire;
+
+    cout << "HERE 2" << endl;
+
     TH1F *h2dummy = (TH1F*)gDirectory->FindObject(name+"_2d_dummy");
     if (h2dummy) delete h2dummy;
 
@@ -221,7 +210,7 @@ TH1F* Waveforms::Draw1D(int chanNo, const char* options, const char* comment)
 
     TString s("same");
     if (s != options) {
-        TH2F *h2dummy = new TH2F(name+"_2d_dummy", title.Data(), 100, 0, nTDCs, 100, -2000,2000);
+        TH2F *h2dummy = new TH2F(name+"_2d_dummy", title.Data(), 100, 0, nTDCs, 100, -1000, 1000);
         h2dummy->GetYaxis()->SetRangeUser(hWire->GetMinimum()*1.05, hWire->GetMaximum()*1.05);
         h2dummy->Draw();
         h2dummy->GetXaxis()->SetTitle("ticks");
@@ -235,6 +224,8 @@ TH1F* Waveforms::Draw1DTick(int tick, const char* options)
 {
     TString name = TString::Format("hTick_%s", fName.Data());
     TString title = TString::Format("Time Tick %i", tick);
+
+    cout << "HERE" << endl;
 
     TH1F *hTick = (TH1F*)gDirectory->FindObject(name);
     if (hTick) delete hTick;
@@ -256,16 +247,5 @@ TH1F* Waveforms::Draw1DTick(int tick, const char* options)
 
 int Waveforms::GetPlaneNo(int chanNo)
 {
-    // 800 u + 800 v + 960 w = 2560
-    int apaNo = chanNo / 2560;
-    int offset = chanNo - apaNo*2560;
-    if (offset < 800) {
-        return 0;
-    }
-    else if (offset < 1600) {
-        return 1;
-    }
-    else {
-        return 2;
-    }
+  return chanNo / 64;
 }

@@ -48,6 +48,7 @@ void RawWaveforms::SetBaseline()
         }
         hBaseline->SetBinContent(chid+1, hf.GetMaximumBin()-1);
     }
+
 }
 
 TH1I* RawWaveforms::Draw1D(int chanNo, const char* options)
