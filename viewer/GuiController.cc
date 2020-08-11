@@ -200,6 +200,8 @@ void GuiController::UnZoom()
         vw->can->GetPad(ind+1)->Modified();
         vw->can->GetPad(ind+1)->Update();
     }
+
+    ChannelChanged();
 }
 
 void GuiController::TimeRangeChanged()
