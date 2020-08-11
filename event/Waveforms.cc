@@ -163,8 +163,6 @@ void Waveforms::HideLines()
 
 void Waveforms::Draw2D()
 {
-    cout << "****> " <<hOrig->GetName() << " " << hOrig->GetBinContent(20, 105) << endl;
-    cout << "====> " <<hDummy->GetName() << " " << hDummy->GetBinContent(20, 105) << endl;
     hDummy->SetBinContent(1, 1);
     hDummy->Draw("colz");
     // hDummy->GetZaxis()->SetRangeUser(-1, 30);
@@ -186,12 +184,8 @@ TH1F* Waveforms::Draw1D(int chanNo, const char* options, const char* comment)
     // TString title = TString::Format("Channel %i", chanNo);
     TString title = TString::Format("Channel %i          %s", chanNo, comment);
 
-    cout << "HERE 1" << endl;
-
     TH1F *hWire = (TH1F*)gDirectory->FindObject(name);
     if (hWire) delete hWire;
-
-    cout << "HERE 2" << endl;
 
     TH1F *h2dummy = (TH1F*)gDirectory->FindObject(name+"_2d_dummy");
     if (h2dummy) delete h2dummy;
@@ -224,8 +218,6 @@ TH1F* Waveforms::Draw1DTick(int tick, const char* options)
 {
     TString name = TString::Format("hTick_%s", fName.Data());
     TString title = TString::Format("Time Tick %i", tick);
-
-    cout << "HERE" << endl;
 
     TH1F *hTick = (TH1F*)gDirectory->FindObject(name);
     if (hTick) delete hTick;

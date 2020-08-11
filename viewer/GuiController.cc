@@ -88,6 +88,17 @@ void GuiController::InitConnections()
     cw->setThreshButton->Connect("Clicked()", "GuiController", this, "SetChannelThreshold()");
     cw->threshScaleEntry->Connect("ValueSet(Long_t)", "GuiController", this, "SetChannelThreshold()");
 
+
+    cw->adcRangeEntry[0]->SetNumber(-500);
+    cw->adcRangeEntry[1]->SetNumber(500);
+    cw->adcRangeEntry[0]->Connect("ValueSet(Long_t)", "GuiController", this, "ADCRangeChanged()");
+    cw->adcRangeEntry[1]->Connect("ValueSet(Long_t)", "GuiController", this, "ADCRangeChanged()");
+
+    cw->timeRangeEntry[0]->SetNumber(0);
+    cw->timeRangeEntry[1]->SetNumber(data->wfs.at(0)->nTDCs);
+    cw->timeRangeEntry[0]->Connect("ValueSet(Long_t)", "GuiController", this, "TimeRangeChanged()");
+    cw->timeRangeEntry[1]->Connect("ValueSet(Long_t)", "GuiController", this, "TimeRangeChanged()");
+
     cw->zAxisRangeEntry[0]->SetNumber(data->wfs.at(0)->zmin);
     cw->zAxisRangeEntry[1]->SetNumber(data->wfs.at(0)->zmax);
     cw->zAxisRangeEntry[0]->Connect("ValueSet(Long_t)", "GuiController", this, "ZRangeChanged()");
@@ -180,8 +191,8 @@ void GuiController::UnZoom()
 {
     cw->timeRangeEntry[0]->SetNumber(0);
     cw->timeRangeEntry[1]->SetNumber(data->wfs.at(0)->nTDCs);
-    cw->adcRangeEntry[0]->SetNumber(0);
-    cw->adcRangeEntry[1]->SetNumber(0);
+    cw->adcRangeEntry[0]->SetNumber(-1000);
+    cw->adcRangeEntry[1]->SetNumber(1000);
 
     for (int ind=0; ind<6; ind++) {
         data->wfs.at(ind)->hDummy->GetXaxis()->UnZoom();
@@ -189,6 +200,20 @@ void GuiController::UnZoom()
         vw->can->GetPad(ind+1)->Modified();
         vw->can->GetPad(ind+1)->Update();
     }
+}
+
+void GuiController::TimeRangeChanged()
+{
+
+  ChannelChanged();
+
+}
+
+void GuiController::ADCRangeChanged()
+{
+
+  ChannelChanged();
+
 }
 
 void GuiController::ZRangeChanged()

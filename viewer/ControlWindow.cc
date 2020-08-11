@@ -52,7 +52,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
         TGNumberFormat::kNESInteger,
         TGNumberFormat::kNEANonNegative,
         TGNumberFormat::kNELLimitMinMax,
-        0, 700);
+        -3000, 3000);
     group_general->AddFrame(timeEntry, new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
 
     timeModeButton = new TGCheckButton(group_general, "time mode  ");
@@ -87,7 +87,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
             TGNumberFormat::kNESInteger,
             TGNumberFormat::kNEAAnyNumber,
             TGNumberFormat::kNELLimitMinMax,
-            0, 200);
+            0, 700);
         group_misc->AddFrame(timeRangeEntry[i], new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
     }
 
@@ -97,7 +97,7 @@ ControlWindow::ControlWindow(const TGWindow *p, int w, int h)
             TGNumberFormat::kNESInteger,
             TGNumberFormat::kNEAAnyNumber,
             TGNumberFormat::kNELLimitMinMax,
-            0, 700);
+            -3000, 3000);
         group_misc->AddFrame(adcRangeEntry[i], new TGLayoutHints(kLHintsTop | kLHintsLeft,  1, 1, 1, 1));
     }
 

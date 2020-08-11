@@ -27,6 +27,8 @@ public:
     void ThresholdWChanged() { ThresholdChanged(2); }
     void ThresholdChanged(int i);
     void SetChannelThreshold();
+    void TimeRangeChanged();
+    void ADCRangeChanged();
     void ZRangeChanged();
     void ChannelChanged();
     void TimeChanged();

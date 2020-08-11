@@ -35,7 +35,7 @@ Data::Data(const char* filename, double threshold, const char* frame, int rebin)
 
     bad_channels = new BadChannels( (TTree*)rootFile->Get("T_bad") );
 
-    //load_runinfo();
+    load_runinfo();
     //load_channelstatus();
 
     load_waveform("hw_raw", "W Plane (Denoised)", 1., threshold);
@@ -169,9 +169,6 @@ void Data::load_waveform(const char* name, const char* title, double scale, doub
     auto hist = maybe_cast<TH2, TH2F>(obj, {"TH2F", "TH2I"}, true);
     hist->SetXTitle("channel");
     hist->SetYTitle("ticks");
-
-    cout << hist->GetName() << " " << hist->GetBinContent(100) << endl;
-
     wfs.push_back( new Waveforms(hist, bad_channels, name, title, scale, threshold) );
 }
 
@@ -232,7 +229,7 @@ void Data::load_threshold(const char* name)
         msg += name;
         msg += ", create dummy ...";
         // throw runtime_error(msg.c_str());
-        obj = new TH1I(name, "", 4000,0,4000);
+        obj = new TH1I(name, "", 642,0, 642);
     }
     auto hist = maybe_cast<TH1, TH1I>(obj, {"TH1I", "TH1F"}, true);
     thresh_histos.push_back( hist );
